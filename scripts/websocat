@@ -1,0 +1,52 @@
+#!/bin/bash
+
+usage() 
+{
+	echo "websocat helper script
+
+args: 
+-m, --mode     either subscribe or publish (default: subscribe)
+-t, --topic    topic to connect to (default: test_topic)
+
+examples:
+./websocat -t test_topic -m subscribe    (subscribes to test_topic)
+./websocat -t test_topic -m publish      (connects to test_topic for publishing)"
+}
+
+mode=subscribe
+topic=test_topic
+
+while [ "$1" != "" ]; do
+    case $1 in
+        -m | --mode )           shift
+                                mode=$1
+                                ;;
+	-t | --topic )          shift
+		                topic=$1
+				;;
+        -h | --help )           usage
+                                exit
+                                ;;
+        * )                     shift
+	                        msg=$1
+				break
+				;;
+    esac
+    shift
+done
+
+if [ "$topic" == "" ]; then
+	usage
+	exit
+fi
+
+if [ "$mode" != "subscribe" ] && [ "$mode" != "publish" ]; then
+	echo "This failed"
+	echo "$mode"
+	usage
+	exit
+fi
+
+
+url="ws://127.0.0.1:8000/topic/$topic/$mode"
+websocat "$url"

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+curl --include \
+	--no-buffer \
+	--header "Connection: Upgrade" \
+	--header "Upgrade: websocket" \
+	--header "Sec-Websocket-Version: 13" \
+	--header "Sec-Websocket-Key: SGVsbG8sIHdvcmxkIQ==" \
+	127.0.0.1:8000/ws
