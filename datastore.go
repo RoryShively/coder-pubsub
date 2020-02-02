@@ -24,6 +24,19 @@ type Subscription struct {
 	msgs   chan MessageEvent
 	done   chan bool
 	closed bool
+	mu     sync.Mutex
+}
+
+func (v *Subscription) Close() {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	v.closed = true
+}
+
+func (v *Subscription) IsClosed() bool {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	return v.closed
 }
 
 // NewSubscription creates a new Subscription and starts a goroutine to close
@@ -37,7 +50,7 @@ func NewSubscription() *Subscription {
 	go func() {
 		select {
 		case _ = <-sub.done:
-			sub.closed = true
+			sub.Close()
 		}
 	}()
 	return sub
@@ -133,7 +146,7 @@ func (v *Datastore) StoreMessage(topic string, msg []byte) {
 func (v *Datastore) notifySubscribers(evt MessageEvent) {
 	openSubs := []*Subscription{}
 	for _, c := range v.subscribers {
-		if c.closed {
+		if c.IsClosed() {
 			continue
 		}
 		openSubs = append(openSubs, c)
